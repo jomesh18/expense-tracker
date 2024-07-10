@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { z } from "zod";
+import categories from "../categories";
 
 const schema = z.object({
   description: z
@@ -11,32 +12,32 @@ const schema = z.object({
     .number({ invalid_type_error: "Amount should be a number" })
     .min(0, { message: "Amount should be greater than 0" })
     .max(10000),
-  category: z
-    .string()
-    .min(1, { message: "Select a valid category from the drop down list" })
-    .max(50),
+  category: z.enum(categories, {
+    errorMap: () => ({ message: "Category is required" }),
+  }),
 });
 
-type FormData = z.infer<typeof schema>;
+type ExpenseFormData = z.infer<typeof schema>;
 
 interface Props {
-  sentData: (data: FormData) => void;
+  onSubmit: (data: ExpenseFormData) => void;
 }
 
-const Form = ({ sentData }: Props) => {
+const ExpenseForm = ({ onSubmit }: Props) => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
-
-  const onSubmit = (data: FormData) => {
-    // console.log(data);
-    sentData(data);
-  };
+  } = useForm<ExpenseFormData>({ resolver: zodResolver(schema) });
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form
+      onSubmit={handleSubmit((d) => {
+        onSubmit(d);
+        reset();
+      })}
+    >
       <div className="mb-3">
         <label htmlFor="description" className="form-label">
           Description
@@ -71,9 +72,9 @@ const Form = ({ sentData }: Props) => {
         </label>
         <select {...register("category")} id="category" className="form-select">
           <option value=""></option>
-          <option value="grocery">Grocery</option>
-          <option value="utilities">Utilities</option>
-          <option value="entertainment">Entertainment</option>
+          {categories.map((c) => (
+            <option value={c}>{c}</option>
+          ))}
         </select>
         {errors.category && (
           <p className="text-danger">{errors.category.message}</p>
@@ -86,4 +87,4 @@ const Form = ({ sentData }: Props) => {
   );
 };
 
-export default Form;
+export default ExpenseForm;

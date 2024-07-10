@@ -13,7 +13,6 @@ interface Props {
 }
 
 const ExpenseList = ({ expenses, onDelete }: Props) => {
-  //   const [category, setCategory] = useState("All");
   if (expenses.length === 0) return null;
   return (
     <>
